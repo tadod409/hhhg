@@ -1,6 +1,5 @@
 // js/profile.js
 
-// ✨ تم إضافة الدوال الناقصة (getPatientVisits, uploadVisitFile) في سطر الاستيراد
 import { 
     checkSession, 
     logoutUser, 
@@ -12,6 +11,7 @@ import {
 } from './api.js';
 
 let currentPatient = null;
+let currentVisits = []; // متغير جديد لحفظ الزيارات واستخدامها في النافذة المنبثقة
 
 // دالة لتأمين النصوص
 const escapeHTML = (str) => {
@@ -87,7 +87,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (error) throw error;
                 
                 alert("Patient details updated successfully!");
-                closeModal('editPatientModal');
+                const m = document.getElementById('editPatientModal');
+                if(m) { m.classList.remove('show'); setTimeout(() => m.classList.add('hidden'), 300); }
                 await loadPatientProfile(patientId); 
             } catch (err) {
                 console.error("Update Error:", err);
@@ -112,7 +113,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             btn.disabled = true;
 
             try {
-                // 1. التعامل مع رفع الملفات
+                // التعامل مع رفع الملفات
                 const fileInput = document.getElementById('visitFiles');
                 let fileUrls = []; 
 
@@ -125,7 +126,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     }
                 }
 
-                // 2. تجميع بيانات الزيارة
                 const newVisit = {
                     patient_id: patientId,
                     clinical_examination: document.getElementById('clinicalExamination')?.value.trim() || null,
@@ -138,13 +138,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                     attachments: fileUrls.length > 0 ? fileUrls.join(',') : null 
                 };
 
-                // 3. الإرسال للسيرفر
                 btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[18px]">autorenew</span> Saving Record...';
                 const { error } = await addVisit(newVisit);
                 if (error) throw error;
 
                 alert("Clinical encounter & files saved successfully!");
-                closeModal('addVisitModal');
+                const m = document.getElementById('addVisitModal');
+                if(m) { m.classList.remove('show'); setTimeout(() => m.classList.add('hidden'), 300); }
                 addVisitForm.reset();
                 
                 await loadVisits(patientId); 
@@ -159,6 +159,70 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 });
+
+// ==========================================
+// دالة نافذة التفاصيل (تعمل عند الضغط على الزر)
+// ==========================================
+window.viewVisitDetails = (visitId) => {
+    const visit = currentVisits.find(v => v.id === visitId);
+    if (!visit) return;
+
+    // تعبئة البيانات في النافذة
+    const visitDate = new Date(visit.visit_date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    document.getElementById('visitDetailDate').textContent = visitDate;
+
+    // تجهيز قائمة الملفات إن وجدت
+    let filesHtml = '';
+    if (visit.attachments) {
+        const files = visit.attachments.split(',');
+        filesHtml = `<div class="mt-4"><h4 class="font-bold text-sm text-primary mb-2">Attached Files</h4><div class="flex gap-2 flex-wrap">`;
+        files.forEach((url, i) => {
+            filesHtml += `<a href="${url}" target="_blank" class="px-3 py-1.5 bg-primary-container text-primary rounded-lg text-xs font-bold hover:bg-primary hover:text-white transition">File ${i + 1} <span class="material-symbols-outlined text-[14px] align-middle">open_in_new</span></a>`;
+        });
+        filesHtml += `</div></div>`;
+    }
+
+    const container = document.getElementById('visitDetailsContainer');
+    container.innerHTML = `
+        <div class="space-y-5">
+            <div class="bg-surface border p-4 rounded-xl">
+                <h4 class="font-bold text-sm text-outline uppercase mb-2">Diagnosis</h4>
+                <p class="font-semibold text-lg">${escapeHTML(visit.diagnosis) || 'No diagnosis recorded'}</p>
+                <p class="text-sm text-on-surface-variant mt-1">ICD Code: <span class="font-mono bg-surface-container px-2 py-0.5 rounded">${escapeHTML(visit.icd_code) || 'N/A'}</span></p>
+            </div>
+            
+            <div class="bg-surface border p-4 rounded-xl">
+                <h4 class="font-bold text-sm text-outline uppercase mb-2">Clinical Examination</h4>
+                <p class="text-sm text-on-surface whitespace-pre-wrap">${escapeHTML(visit.clinical_examination) || '--'}</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-surface border p-4 rounded-xl">
+                    <h4 class="font-bold text-sm text-outline uppercase mb-2">Prescription</h4>
+                    <p class="text-sm text-on-surface whitespace-pre-wrap">${escapeHTML(visit.prescription) || '--'}</p>
+                </div>
+                <div class="bg-surface border p-4 rounded-xl space-y-4">
+                    <div>
+                        <h4 class="font-bold text-sm text-outline uppercase mb-2">Lab Orders</h4>
+                        <p class="text-sm text-on-surface whitespace-pre-wrap">${escapeHTML(visit.lab_orders) || '--'}</p>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-sm text-outline uppercase mb-2">Radiology</h4>
+                        <p class="text-sm text-on-surface whitespace-pre-wrap">${escapeHTML(visit.radiology_orders) || '--'}</p>
+                    </div>
+                </div>
+            </div>
+            ${filesHtml}
+        </div>
+    `;
+
+    // إظهار النافذة
+    const m = document.getElementById('visitDetailsModal');
+    if (m) {
+        m.classList.remove('hidden');
+        setTimeout(() => m.classList.add('show'), 10);
+    }
+};
 
 // ==========================================
 // الدوال المساعدة لجلب وعرض البيانات
@@ -251,11 +315,18 @@ async function loadPatientProfile(patientId) {
 }
 
 async function loadVisits(patientId) {
+    // تحديد الحاويات للأقسام المختلفة
     const visitsContainer = document.getElementById('timeline-list');
+    const prescriptionsList = document.getElementById('prescriptions-list');
+    const laboratoryTbody = document.getElementById('laboratory-tbody');
+    const radiologyGrid = document.getElementById('radiology-grid');
+    const filesGrid = document.getElementById('files-grid');
+
     if (!visitsContainer) return;
 
     try {
-        const visits = await getPatientVisits(patientId);
+        currentVisits = await getPatientVisits(patientId);
+        const visits = currentVisits;
         
         const statVisits = document.getElementById('stat-visits');
         if (statVisits) statVisits.textContent = visits.length;
@@ -268,13 +339,21 @@ async function loadVisits(patientId) {
         const lastVisitStat = document.getElementById('stat-last-visit');
         if (lastVisitStat) lastVisitStat.textContent = new Date(visits[0].visit_date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
 
+        // تفريغ الأقسام قبل التعبئة
         visitsContainer.innerHTML = ''; 
+        if(prescriptionsList) prescriptionsList.innerHTML = '';
+        if(laboratoryTbody) laboratoryTbody.innerHTML = '';
+        if(radiologyGrid) radiologyGrid.innerHTML = '';
+        if(filesGrid) filesGrid.innerHTML = '';
+
+        let hasPrescription = false, hasLab = false, hasRadiology = false, hasFiles = false;
 
         visits.forEach((visit, index) => {
             const visitDate = new Date(visit.visit_date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
             const title = visit.diagnosis || `Clinical Encounter #${visits.length - index}`;
             const details = visit.clinical_examination ? escapeHTML(visit.clinical_examination).substring(0, 150) + '...' : 'No clinical examination details provided.';
 
+            // 1. قسم الزيارات
             visitsContainer.innerHTML += `
                 <div class="bg-surface rounded-xl border border-outline-variant/50 shadow-sm p-5 hover:border-primary transition-colors mb-4">
                     <div class="flex justify-between items-start mb-3">
@@ -284,14 +363,85 @@ async function loadVisits(patientId) {
                                 <span class="material-symbols-outlined text-[16px]">calendar_today</span> ${visitDate}
                             </p>
                         </div>
-                        <button onclick="console.log('View Visit: ${visit.id}')" class="px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition shadow">
+                        <button onclick="window.viewVisitDetails('${visit.id}')" class="px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition shadow">
                             View Details
                         </button>
                     </div>
                     <p class="text-sm text-on-surface-variant">${details}</p>
                 </div>
             `;
+
+            // 2. قسم الوصفات الطبية
+            if (visit.prescription && prescriptionsList) {
+                hasPrescription = true;
+                prescriptionsList.innerHTML += `
+                    <div class="bg-surface rounded-xl border border-outline-variant/50 shadow-sm p-4 mb-3">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="material-symbols-outlined text-primary">prescriptions</span>
+                            <span class="font-bold text-sm text-on-surface">${visitDate}</span>
+                        </div>
+                        <p class="text-sm text-on-surface-variant whitespace-pre-wrap">${escapeHTML(visit.prescription)}</p>
+                    </div>
+                `;
+            }
+
+            // 3. قسم التحاليل
+            if (visit.lab_orders && laboratoryTbody) {
+                hasLab = true;
+                laboratoryTbody.innerHTML += `
+                    <tr class="hover:bg-surface-container-low transition border-b border-outline-variant/30">
+                        <td class="p-4 text-sm">${visitDate}</td>
+                        <td class="p-4 text-sm font-semibold">${escapeHTML(visit.lab_orders)}</td>
+                        <td class="p-4"><span class="px-2 py-1 bg-secondary-container text-secondary text-xs rounded-full font-bold">Ordered</span></td>
+                        <td class="p-4 text-right"><button onclick="window.viewVisitDetails('${visit.id}')" class="text-primary hover:underline text-sm font-semibold">View</button></td>
+                    </tr>
+                `;
+            }
+
+            // 4. قسم الأشعة
+            if (visit.radiology_orders && radiologyGrid) {
+                hasRadiology = true;
+                radiologyGrid.innerHTML += `
+                    <div class="bg-surface rounded-xl border border-outline-variant/50 shadow-sm p-4">
+                        <div class="flex items-center gap-2 mb-2 text-primary">
+                            <span class="material-symbols-outlined">radiology</span>
+                            <span class="font-bold text-sm">Order on ${visitDate.split(',')[0]}</span>
+                        </div>
+                        <p class="text-sm text-on-surface-variant">${escapeHTML(visit.radiology_orders)}</p>
+                    </div>
+                `;
+            }
+
+            // 5. قسم الملفات السحابية (Google Drive)
+            if (visit.attachments && filesGrid) {
+                hasFiles = true;
+                const files = visit.attachments.split(',');
+                files.forEach((fileUrl, i) => {
+                    filesGrid.innerHTML += `
+                        <div class="bg-surface rounded-xl border border-outline-variant/50 shadow-sm p-4 flex items-center justify-between hover:border-primary transition">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-lg bg-primary-container text-primary flex items-center justify-center">
+                                    <span class="material-symbols-outlined">description</span>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-bold text-on-surface">Attachment ${i + 1}</p>
+                                    <p class="text-xs text-on-surface-variant">${visitDate.split(',')[0]}</p>
+                                </div>
+                            </div>
+                            <a href="${fileUrl}" target="_blank" class="p-2 rounded-lg bg-surface-container hover:bg-primary hover:text-white transition text-primary">
+                                <span class="material-symbols-outlined text-[20px]">download</span>
+                            </a>
+                        </div>
+                    `;
+                });
+            }
         });
+
+        // رسائل الأقسام الفارغة
+        if (!hasPrescription && prescriptionsList) prescriptionsList.innerHTML = '<div class="text-center text-sm text-outline py-10">No prescriptions found.</div>';
+        if (!hasLab && laboratoryTbody) laboratoryTbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-outline">No laboratory records found.</td></tr>';
+        if (!hasRadiology && radiologyGrid) radiologyGrid.innerHTML = '<div class="col-span-full text-center text-sm text-outline py-10">No radiology records found.</div>';
+        if (!hasFiles && filesGrid) filesGrid.innerHTML = '<div class="col-span-full text-center text-sm text-outline py-10">No files synced from Google Drive.</div>';
 
     } catch (err) {
         console.error("Error loading visits:", err);
