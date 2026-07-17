@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" class="h-full bg-surface">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="color-scheme" content="light">
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <meta name="description" content="MediCare Premium Clinic Management System">
+
+    <meta http-equiv="Content-Security-Policy"
+          content="
+            default-src 'self';
+            script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net;
+            style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+            font-src https://fonts.gstatic.com;
+            img-src 'self' data: https:;
+            connect-src 'self' http://localhost:5000 https://*.supabase.co;
+          ">
+
+    <title>MediCare Premium | Secure Login</title>
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet">
+
+    <script>
+
+        tailwind.config = {
+
+            darkMode: "class",
+
+            theme: {
+
+                extend: {
+
+                    colors: {
+
+                        primary: "#003d9b",
+
+                        "on-primary": "#ffffff",
+
+                        "primary-fixed-variant": "#0040a2",
+
+                        surface: "#f8f9fb",
+
+                        "surface-container-low": "#f3f4f6",
+
+                        "on-surface": "#191c1e",
+
+                        "on-surface-variant": "#434654",
+
+                        outline: "#737685",
+
+                        "outline-variant": "#c3c6d6",
+
+                        secondary: "#00687a",
+
+                        error: "#ba1a1a"
+
+                    },
+
+                    borderRadius: {
+
+                        DEFAULT: "2px",
+
+                        xl: "12px"
+
+                    },
+
+                    spacing: {
+
+                        xs: "4px",
+
+                        sm: "12px",
+
+                        lg: "40px"
+
+                    },
+
+                    fontFamily: {
+
+                        sans: ["Inter"]
+
+                    }
+
+                }
+
+            }
+
+        };
+
+    </script>
+
+    <style>
+
+        .glass-panel{
+
+            background:rgba(255,255,255,.95);
+
+            backdrop-filter:blur(12px);
+
+            -webkit-backdrop-filter:blur(12px);
+
+            border:1px solid #c3c6d6;
+
+        }
+
+        body{
+
+            font-family:Inter,sans-serif;
+
+        }
+
+    </style>
+
+</head>
+<body class="h-full flex items-center justify-center font-body-md text-on-surface bg-surface-container-low antialiased selection:bg-primary/20 relative overflow-hidden">
+   
+    <div class="absolute inset-0 z-0 flex">
+        <div class="w-1/2 bg-surface flex flex-col justify-between p-lg relative hidden md:flex">
+            <div class="flex items-center gap-xs">
+                <span class="material-symbols-outlined text-primary" style="font-size: 32px; font-variation-settings: 'FILL' 1;">medical_services</span>
+                <span class="font-headline-md text-primary font-semibold">MediCare Premium</span>
+            </div>
+            <div class="max-w-md">
+                <h2 class="text-3xl font-bold text-on-surface mb-sm">Precision Care,<br/>Elevated.</h2>
+                <p class="text-lg text-on-surface-variant">Secure access to advanced patient management and clinical data systems.</p>
+            </div>
+            <div class="text-sm font-medium text-outline flex items-center gap-xs">
+                <span class="material-symbols-outlined" style="font-size: 20px;">lock</span>
+                <span>Enterprise Grade Security</span>
+            </div>
+        </div>
+
+        <div class="w-full md:w-1/2 relative">
+            <div class="absolute inset-0 bg-primary/10 z-10 mix-blend-multiply"></div>
+            <div class="absolute inset-0 bg-gradient-to-r from-surface to-transparent z-10 hidden md:block"></div>
+            <img alt="Clinical Background" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDGayP80EYvPVdFJYSyUyuPh2NPTdU5KczpzXNXpP_IEG5ag154eNNEwsjFBrwr2uZZZZSe_ppg6oUUJ58r4immRZlUL4JRa0CZUv7ye0ucec5WY4TBvX5fvSWZ3rznafU79GqWKWKdtl82FGVq0dJ2Q8pDZbABAneJ2RsyWYAE7LX8qp-tl_KHrjSaRDmr-x4FlJCBqAvUm0RjoGzcz1yV58lTP3d2WspbKvVTYF37hK2e0XRCTtvy"/>
+        </div>
+    </div>
+
+    <main class="z-20 w-full max-w-md px-4 sm:px-0">
+        <div class="flex items-center justify-center gap-xs mb-lg md:hidden">
+            <span class="material-symbols-outlined text-primary" style="font-size: 32px; font-variation-settings: 'FILL' 1;">medical_services</span>
+            <span class="text-2xl font-bold text-primary">MediCare Premium</span>
+        </div>
+
+        <div class="glass-panel rounded-xl shadow-[0_4px_24px_rgba(0,0,0,0.08)] p-8 relative overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-1 bg-primary"></div>
+           
+            <div class="mb-6">
+                <h1 class="text-2xl font-bold text-on-surface">Secure Login</h1>
+                <p class="text-sm text-on-surface-variant mt-1">Authenticate to access clinical systems.</p>
+            </div>
+
+            <div
+                id="error-message"
+                role="alert"
+                aria-live="assertive"
+                class="hidden mb-4 rounded border border-red-200 bg-red-50 p-3 text-sm font-medium text-error">
+            </div>
+
+            <form id="loginForm" class="space-y-6" novalidate autocomplete="off">
+                <input type="hidden" id="csrfToken" name="csrfToken">
+               
+                <div>
+                    <label class="block text-sm font-semibold text-on-surface mb-2" for="identifier">Email Address</label>
+                    <div class="relative rounded-md shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span class="material-symbols-outlined text-outline" style="font-size: 20px;">mail</span>
+                        </div>
+                        <input class="block w-full pl-10 py-2.5 rounded border border-outline-variant text-on-surface focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm bg-surface"
+                               id="identifier" name="identifier" type="email" required placeholder="name@domain.com" autocomplete="username"/>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="block text-sm font-semibold text-on-surface" for="password">Password</label>
+                        <a class="text-xs font-semibold text-primary hover:text-primary-fixed-variant focus:outline-none focus:underline transition-colors" href="#">Forgot Password?</a>
+                    </div>
+                    <div class="relative rounded-md shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span class="material-symbols-outlined text-outline" style="font-size: 20px;">key</span>
+                        </div>
+                        <input class="block w-full pl-10 py-2.5 rounded border border-outline-variant text-on-surface focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm bg-surface"
+                               id="password" name="password" type="password" required maxlength="72" placeholder="••••••••" autocomplete="current-password"/>
+                    </div>
+                </div>
+
+                <div class="bg-surface-container-low p-3 rounded flex items-start gap-3 border border-outline-variant/50">
+                    <span class="material-symbols-outlined text-secondary mt-0.5" style="font-size: 18px;">verified_user</span>
+                    <p class="text-xs text-on-surface-variant leading-relaxed">
+                        Access is restricted to authorized personnel. All login attempts are recorded and monitored for security.
+                    </p>
+                </div>
+
+                <div class="pt-2">
+                    <button
+                        id="submitBtn"
+                        type="submit"
+                        data-loading-text="Signing In..."
+                        class="w-full flex items-center justify-center gap-2 rounded border border-transparent bg-primary px-4 py-2.5 text-sm font-semibold text-on-primary shadow-sm transition-colors hover:bg-primary-fixed-variant focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+                       
+                        <span class="material-symbols-outlined" style="font-size:20px">login</span>
+                        <span id="submitText">Secure Login</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="mt-8 text-center">
+            <p class="text-sm text-on-surface-variant">
+                Need technical support? <a class="font-semibold text-secondary hover:text-blue-700 transition-colors" href="#">Contact IT Helpdesk</a>
+            </p>
+        </div>
+    </main>
+
+    <div id="toast-container"></div>
+    <div
+        id="global-loader"
+        class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+        <div class="h-12 w-12 animate-spin rounded-full border-4 border-white border-t-transparent"></div>
+    </div>
+
+    <script type="module" src="/js/login.js"></script>
+</body>
+</html>
